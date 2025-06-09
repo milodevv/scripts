@@ -1,0 +1,48 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+read -p "Nombre del proyecto: " PROJECT_NAME
+if [[ -z "$PROJECT_NAME" ]]; then
+    echo "❌ Debes ingresar un nombre de proyecto"
+    exit 1
+fi
+
+read -p "¿Desea agregar algún servicio? [y/n]: " ADD_SERVICE
+
+SERVICE_NAMES=()
+
+if [[ "$ADD_SERVICE" == [yY]* ]]; then
+    read -p "¿Cuántos servicios desea agregar?: " COUNT_SERVICE
+
+    if [[ "$COUNT_SERVICE" =~ ^[0-9]+$ ]] && [[ "$COUNT_SERVICE" -gt 0 ]]; then
+        for ((i = 1; i <= COUNT_SERVICE; i++)); do
+            read -p "➤ Nombre del servicio #$i: " SERVICE_NAME
+            SERVICE_NAMES+=("$SERVICE_NAME")
+        done
+    else
+        echo "❌ Número inválido de servicios."
+        exit 1
+    fi
+fi
+
+WORKDIR="$(pwd)/$PROJECT_NAME"
+
+if [[ ! -d "$WORKDIR" ]]; then
+    mkdir -p "$WORKDIR"
+    echo "📁 Directorio '$WORKDIR' creado."
+fi
+
+cd "$WORKDIR" || exit 1
+
+for NAME in "${SERVICE_NAMES[@]}"; do
+    if [[ ! -d "$NAME" ]]; then
+        echo "🚀 Generando servicio: $NAME"
+        dotnet new webapi -n "$NAME"
+    else
+        echo "⚠️ El servicio '$NAME' ya existe, se omite."
+    fi
+done
+
+
+
